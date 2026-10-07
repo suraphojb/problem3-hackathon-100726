@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Big Boss Project — Call Surge Assistant</title>
+<style>
+:root{--bg:#F4F6FA;--card:#fff;--line:#DDE3EC;--ink:#14243A;--mut:#5B6B82;--blue:#2563EB;--red:#DC2626;--redL:#FEF2F2;--amber:#B45309;--amberL:#FFFBEB;--teal:#0F766E;--tealL:#F0FDFA}
+*{box-sizing:border-box}html,body{overflow-x:hidden}
+body{margin:0;background:var(--bg);color:var(--ink);font:15.5px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button,select,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px 22px;background:#fff;border-bottom:1px solid var(--line)}
+header h1{margin:0;font-size:20px}header p{margin:0;color:var(--mut);font-size:14px}
+.badge{font-size:12.5px;font-weight:600;padding:4px 10px;border-radius:999px;border:1px solid}
+.b-sim{background:#FFF7ED;border-color:#FDBA74;color:#9A3412}.b-rule{background:#EEF2FF;border-color:#C7D2FE;color:#3730A3}
+.wrap{max-width:1500px;margin:0 auto;padding:14px 22px 40px}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 1px 2px rgba(20,36,58,.05)}
+.top{display:flex;flex-wrap:wrap;gap:12px;align-items:stretch}
+.metrics{display:flex;flex-wrap:wrap;gap:0;flex:1 1 520px}
+.metric{flex:1 1 120px;padding:10px 14px;border-right:1px solid var(--line)}.metric:last-child{border-right:0}
+.metric b{display:block;font-size:24px;line-height:1.1;font-variant-numeric:tabular-nums}.metric span{font-size:13px;color:var(--mut)}
+.metric.hot b{color:var(--red)}
+.agents{flex:1 1 560px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:10px 12px}
+.agent{flex:1 1 120px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:13px;background:#F8FAFD}
+.agent b{display:block;font-size:13px}.agent span{color:var(--mut)}
+.agent.busy{border-color:#93C5FD;background:#EFF6FF}.agent.warn{border-color:#FCD34D;background:var(--amberL)}
+.clock{font-weight:700;font-variant-numeric:tabular-nums;padding:6px 10px;background:#EEF2F7;border-radius:8px;font-size:14px;white-space:nowrap}
+.cols{display:grid;grid-template-columns:minmax(0,25fr) minmax(0,40fr) minmax(0,35fr);gap:14px;margin-top:14px;align-items:start}
+.pane{padding:12px 14px}
+.pane h2{margin:0 0 8px;font-size:16.5px;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.pane h2 small{font-size:12.5px;color:var(--mut);font-weight:600}
+.call{display:block;width:100%;text-align:left;border:1px solid var(--line);border-radius:9px;background:#fff;padding:8px 10px;margin-top:7px;cursor:pointer;font-size:14px}
+.call:hover,.row:hover{border-color:#B8C3D3}.call.sel,.row.sel{box-shadow:0 0 0 2px var(--blue)}
+.call .h{display:flex;justify-content:space-between;gap:6px;font-weight:700}
+.call .x{color:var(--mut);display:block;margin-top:2px}
+.pill{display:inline-block;font-size:12px;font-weight:700;padding:1px 7px;border-radius:6px;background:#EEF2F7;color:#334155;margin:2px 3px 0 0;white-space:nowrap}
+.p-urg{background:#FEE2E2;color:#991B1B}.p-clar{background:#FEF3C7;color:#92400E}.p-link{background:#DBEAFE;color:#1E40AF}.p-acc{background:#CCFBF1;color:#115E59}.p-rep{background:#E2E8F0;color:#334155}.p-new{background:#EDE9FE;color:#5B21B6}.p-upd{background:#E0F2FE;color:#075985}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
+.tab{border:1px solid var(--line);background:#fff;border-radius:7px;padding:4px 10px;font-size:13.5px;font-weight:600;cursor:pointer}
+.tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.row{display:block;width:100%;text-align:left;border:1px solid var(--line);border-left:5px solid #CBD5E1;border-radius:10px;background:#fff;padding:10px 12px;margin-top:8px;cursor:pointer}
+.row.urg{border-left-color:var(--red)}.row.clar{border-left-color:#F59E0B}.row.link{border-left-color:var(--blue)}
+.row .h{display:flex;justify-content:space-between;gap:8px;font-weight:700}
+.row .s{font-size:14px;color:var(--mut);display:block;margin-top:2px}
+.row .meta{font-size:13px;color:var(--mut);display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:4px}
+.box{border-radius:9px;padding:9px 11px;margin-top:8px;font-size:14.5px}
+.box.urg{background:var(--redL);border:1px solid #FCA5A5}.box.new{background:#F5F3FF;border:1px solid #DDD6FE}.box.clar{background:var(--amberL);border:1px solid #FCD34D}.box.ok{background:var(--tealL);border:1px solid #99F6E4}.box.info{background:#F8FAFD;border:1px solid var(--line)}
+.box h4{margin:0 0 4px;font-size:14.5px}
+q{quotes:"“" "”";font-style:italic}
+.btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:5px 11px;font-weight:600;cursor:pointer;font-size:13.5px}
+.btn:hover{border-color:#94A3B8}.btn.pri{background:var(--blue);border-color:var(--blue);color:#fff}.btn.tealb{background:var(--teal);border-color:var(--teal);color:#fff}.btn.redo{color:var(--red)}
+.btn:disabled{opacity:.5;cursor:default}
+.acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.facts{margin:4px 0 0;padding-left:18px;font-size:14.5px}.facts li{margin:3px 0}
+.cid{font-size:12px;font-weight:700;color:var(--blue);background:#EFF6FF;border-radius:5px;padding:0 5px;margin-left:4px}
+.sec h3{font-size:14.5px;margin:12px 0 4px;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
+.ev{border-top:1px solid var(--line);padding:7px 0;font-size:14px}
+.ev .k{font-weight:700}.ev .m{color:var(--mut);font-size:13px}
+.q{border:1px solid var(--line);border-radius:9px;padding:9px 11px;margin-top:8px}
+.q>b{display:block}.q .m{font-size:13px;color:var(--mut)}
+.q input,.rv input,.rv select{width:100%;border:1px solid var(--line);border-radius:7px;padding:6px 8px;margin-top:6px}
+.tx{white-space:pre-wrap;background:#F8FAFD;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px;margin-top:6px}
+.upd{border-left:3px solid var(--blue);padding:4px 8px;margin-top:6px;font-size:14px;background:#EFF6FF;border-radius:0 6px 6px 0}
+.err{color:var(--red);font-size:13px;font-weight:600}
+.muted{color:var(--mut);font-size:14px}
+.log{max-height:240px;overflow:auto;font-size:13.5px}.log div{padding:4px 0;border-top:1px solid var(--line)}.log time{color:var(--mut);margin-right:8px;font-variant-numeric:tabular-nums}
+details.audit{margin-top:14px}details.audit summary{cursor:pointer;padding:12px 14px;font-weight:700}
+.presenter{position:fixed;right:16px;bottom:16px;z-index:20;padding:12px 14px;max-width:min(430px,calc(100vw - 32px));box-shadow:0 8px 24px rgba(20,36,58,.18)}
+.presenter[hidden]{display:none}
+.empty{color:var(--mut);font-size:14px;padding:10px 2px}
+@media(max-width:1100px){.cols{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.cols>.detail{grid-column:1/-1;order:-1}}
+@media(max-width:700px){.wrap{padding:10px 12px 30px}header{padding:10px 12px}.cols{grid-template-columns:minmax(0,1fr)}.cols>.detail{order:0}.metric{flex-basis:45%;border-right:0;border-bottom:1px solid var(--line)}}
+</style></head><body>
+<header>
+ <div><h1>Big Boss Project</h1><p>Call Surge Assistant</p></div>
+ <span class="badge b-sim">Simulated calls · Operator decision support</span>
+ <span class="badge b-rule">Rule-based extraction &amp; simulated research — no live calls, no dispatch</span>
+ <span class="clock" style="margin-left:auto">Demo clock <span id="clock"></span></span>
+</header>
+<div class="wrap">
+ <div class="top">
+  <section class="card metrics" id="metrics" aria-label="Metrics"></section>
+  <section class="card agents" id="agents" aria-label="Agent activity"></section>
+ </div>
+ <div class="cols">
+  <section class="card pane"><h2>Incoming calls <small>auto-replayed · fictional</small></h2><div id="feed"></div></section>
+  <section class="card pane"><h2>Operator queue <small>Call Center Gateway</small></h2><div class="tabs" id="qtabs"></div><div id="queue"></div></section>
+  <section class="card pane detail" id="detail" aria-live="polite"></section>
+ </div>
+ <details class="card audit"><summary>Audit log — every agent and operator decision</summary><div class="log" id="log" style="padding:0 14px 12px"></div></details>
+</div>
+<div class="card presenter" id="presenter" hidden>
+ <b>Presenter controls</b> <span class="muted">· not part of the operator UI · Shift+P</span>
+ <div class="acts" style="margin-top:8px">
+  <button class="btn" id="pauseBtn" onclick="togglePause()">Pause</button>
+  <button class="btn" onclick="restart()">Restart</button>
+  <select id="speed" class="btn" onchange="S.speed=+this.value;save()" aria-label="Replay speed"><option value="1">Speed 1×</option><option value="2">Speed 2×</option><option value="4">Speed 4×</option></select>
+ </div>
+</div>
+<script>
+/* ================= Fictional demo data ================= */
+const T0=21*60; // demo clock 21:00
+const CALL_SCRIPT=[
+ {id:'C1',at:2000,text:"Hi, I'm outside Building A at 12 Harbor Way. There's grey smoke coming out of the third-floor windows. I don't know if anyone is inside. It started maybe five minutes ago."},
+ {id:'C2',at:9000,text:"I'm calling about smoke at Building A, 12 Harbor Way. It's coming out of the third-floor windows. I don't see anyone trapped, but I can't see the back of the building."},
+ {id:'C3',at:16000,text:"Please, my neighbor is trapped upstairs in Building A at 12 Harbor Way, on the fourth floor! She can't get down the stairs because of the smoke."},
+ {id:'C4',at:23000,text:"There's smoke at Building B, 14 Harbor Way, right next to Building A. It's coming from the ground-floor loading dock."},
+ {id:'C5',at:30000,text:"There's smoke near the harbor buildings, one of the big ones, I can't tell which. It's not a fire, I think? I'm not sure."},
+ {id:'C6',at:37000,text:"Smoke at Building A, 12 Harbor Way. It's a car on fire in the parking lot behind it, not the building itself."}
+];
+/* Simulated research adapters (fictional). underlying = original source for copies. */
+const SOURCES=[
+ {id:'N-1',adapter:'Demo City Fire notices (simulated)',type:'Official notice',at:T0+5,building:'A',kind:'building smoke',underlying:'N-1',claim:'DEMO NOTICE: Units responding to reported smoke at 12 Harbor Way (Building A).'},
+ {id:'W-7',adapter:'Demo Harbor News (simulated)',type:'News',at:T0+7,building:'A',kind:'building smoke',underlying:'N-1',claim:'City says units are responding to smoke at 12 Harbor Way. (Repeats notice N-1.)'},
+ {id:'S-5',adapter:'Demo social search (simulated)',type:'Social post',at:T0+8,building:'A',kind:'drill',underlying:'S-5',claim:'pretty sure 12 Harbor Way is just a fire drill lol'},
+ {id:'S-3',adapter:'Demo social search (simulated)',type:'Social post',at:T0+6,building:null,kind:'bonfire',underlying:'S-3',claim:'Bonfire smoke at Harbor Park tonight, smells everywhere.'}
+];
+const FAILS={B:'Demo social search (simulated)'}; // this adapter times out for Building B
+
+/* ================= State ================= */
+const KEY='bbp-calls-v1';let canSave=true;
+const fresh=()=>({v:1,sim:0,speed:1,paused:false,next:0,calls:[],incs:[],seq:0,sel:null,tab:'summary',qtab:'all',log:[],agents:{intake:'Waiting for calls',matching:'Idle',priority:'Idle',research:'Idle',guide:'Idle'},tasks:[]});
+let S;try{const s=JSON.parse(localStorage.getItem(KEY));S=s&&s.v===1?Object.assign(fresh(),s):fresh()}catch(e){S=fresh();canSave=false}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){canSave=false}}
+const now=()=>T0+Math.floor(S.sim/3500);
+const fmt=m=>m==null?'unknown':`${String(Math.floor(m/60)%24).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function log(msg){S.log.unshift({at:fmt(now()),msg})}
+const callById=id=>S.calls.find(c=>c.id===id),incById=id=>S.incs.find(i=>i.id===id);
+
+/* ================= Concierge Agent: rule-based extraction ================= */
+const NUM={one:1,two:2,three:3,four:4,five:5,ten:10,fifteen:15,twenty:20};
+const FLOOR={ground:0,first:1,second:2,third:3,fourth:4,fifth:5};
+const DANGER=[[/trapped/i,'person trapped'],[/can'?t get (down|out)/i,'person cannot get out'],[/unconscious|not breathing/i,'person unresponsive'],[/(spreading|getting worse)/i,'conditions worsening']];
+const NEG=/\b(no|not|don'?t|do not|isn'?t|nobody|no one|never|didn'?t)\b[^,.;!?]*$/i;
+function extract(call){
+ const parts=[{src:call.id,text:call.text}].concat(call.updates.map((u,k)=>({src:`${call.id}-U${k+1}`,text:u.text})));
+ const sents=parts.flatMap(p=>p.text.split(/(?<=[.!?])\s+/).map(s=>({s,src:p.src})));
+ const find=re=>sents.find(x=>re.test(x.s));
+ const e={facts:[],uncert:[],danger:[],negDanger:[],missing:[]};
+ const fact=(key,text,hit,kind='fact')=>(kind==='fact'?e.facts:e.uncert).push({key,text,quote:hit?hit.s:'',src:hit?hit.src:call.id});
+ // location (later answers override)
+ let b=null,addr=null,floor=null;
+ for(const x of sents){const m=x.s.match(/Building ([A-Z])\b/);if(m){b=m[1];e.locQuote=x}const a=x.s.match(/(\d+) Harbor Way/);if(a)addr=a[1]+' Harbor Way'}
+ if(b){const near=sents.filter(x=>/next to Building/.test(x.s));if(near.length){const m=sents.map(x=>x.s.match(/(?:at|in) Building ([A-Z])/)).find(Boolean);if(m)b=m[1]}}
+ const fl=find(/\b(ground|first|second|third|fourth|fifth)[- ]floor/i);if(fl){floor=FLOOR[fl.s.match(/\b(ground|first|second|third|fourth|fifth)[- ]floor/i)[1].toLowerCase()];}
+ const vague=find(/can'?t tell which|not sure which|one of the/i);
+ e.loc={building:b,address:addr,floor,certainty:b&&addr&&!vague?'exact':b||addr?'partial':'unknown',text:b?`Building ${b}${addr?', '+addr:''}`:'Unknown location'};
+ if(vague)fact('loc-vague','Caller cannot say which building',vague,'unc');
+ if(b)fact('loc:'+b,`Location: ${e.loc.text}`,e.locQuote);
+ if(floor!=null)fact('floor:'+floor,`${floor===0?'Ground':['','First','Second','Third','Fourth','Fifth'][floor]} floor mentioned`,fl);
+ // type & hazards, with negation handling
+ const car=find(/\b(car|vehicle)\b/i),smoke=find(/smoke/i),notFire=find(/not a fire/i),notBldg=find(/not the building/i);
+ e.type=car?'Vehicle fire':smoke?'Smoke / possible fire':'Unclear';
+ if(smoke)fact('hz:smoke','Smoke reported',smoke);
+ if(car)fact('hz:vehicle','Vehicle on fire',car);
+ if(notBldg)fact('scope:outside','Caller says the building itself is not burning',notBldg);
+ if(notFire){e.typeUnclear=true;fact('type-unclear','Caller unsure whether it is a fire',notFire,'unc')}
+ const det=[[/windows/i,'Smoke from windows'],[/loading dock/i,'Loading dock'],[/parking lot/i,'Parking lot'],[/stairs/i,'Stairs blocked by smoke']];
+ det.forEach(([re,t])=>{const h=find(re);if(h)fact('d:'+t,t,h)});
+ // danger with negation
+ for(const x of sents)for(const [re,lab] of DANGER){const m=x.s.match(re);if(!m)continue;const before=x.s.slice(0,m.index);
+  if(NEG.test(before)){e.negDanger.push({label:lab,quote:x.s,src:x.src});fact('obs:'+lab,`Caller does not see: ${lab} (limited view)`,x,'unc')}
+  else if(!e.danger.some(d=>d.label===lab)){e.danger.push({label:lab,quote:x.s,src:x.src});fact('danger:'+lab,`Reported: ${lab}`,x)}}
+ const dk=find(/don'?t know if anyone/i);if(dk)fact('people-unknown','Unknown whether anyone is inside',dk,'unc');
+ const tm=find(/(\w+) minutes ago/i);e.eventTime=tm?call.recvAt-(NUM[tm.s.match(/(\w+) minutes ago/i)[1].toLowerCase()]||0):null;
+ if(tm)fact('time','Started about '+fmt(e.eventTime)+' (approximate)',tm);
+ const hedge=sents.filter(x=>/\b(I think|not sure|maybe|I guess)\b/i.test(x.s)&&!/minutes ago/.test(x.s));
+ hedge.forEach(x=>{if(!e.uncert.some(u=>u.quote===x.s))e.uncert.push({key:'hedge',text:'Caller hedges',quote:x.s,src:x.src})});
+ // missing information
+ if(e.loc.certainty!=='exact')e.missing.push('exact location');
+ if(b&&floor==null&&!car)e.missing.push('floor or entrance');
+ if(!e.danger.length&&!e.negDanger.length)e.missing.push('people affected');
+ if(e.negDanger.length&&!e.danger.length)e.missing.push('people affected');
+ if(e.type==='Unclear'||e.typeUnclear)e.missing.push('what the caller directly observes');
+ if(e.eventTime==null)e.missing.push('when it started');
+ return e}
+
+/* ================= Priority Agent (illustrative rules, not a 911 protocol) ================= */
+function prioritize(c){
+ const flags=[];
+ c.ext.danger.forEach(d=>flags.push({kind:'urgent',label:d.label,quote:d.quote,src:d.src}));
+ if(c.ext.loc.certainty!=='exact')flags.push({kind:'clarify',label:'Location unclear',quote:c.ext.loc.certainty==='unknown'?(c.ext.uncert.find(u=>u.key==='loc-vague')||{}).quote||'No location given':'',src:c.id});
+ if(c.ext.typeUnclear)flags.push({kind:'clarify',label:'Hazard unclear',quote:(c.ext.uncert.find(u=>u.key==='type-unclear')||{}).quote,src:c.id});
+ // keep existing acknowledgement/review state; never auto-downgrade
+ const old=c.flags||[];
+ c.flags=flags.map(f=>Object.assign({ack:null,history:[],state:'open'},old.find(o=>o.kind===f.kind&&o.label===f.label)||{},f));
+ old.filter(o=>o.kind==='urgent'&&!c.flags.some(f=>f.label===o.label)).forEach(o=>c.flags.push(Object.assign(o,{note:'Retained from earlier version of this call'})));
+}
+const urgentOpen=c=>c.flags.filter(f=>f.kind==='urgent'&&f.state!=='reviewed');
+
+/* ================= Incident database + matching ================= */
+const members=inc=>S.calls.filter(c=>c.incidentId===inc.id);
+const active=inc=>members(inc).length>0;
+function incLoc(inc){const ms=members(inc);const c=ms.find(c=>c.ext.loc.certainty==='exact')||ms.find(c=>c.ext.loc.building)||ms[0];return c?c.ext.loc:{text:'Unknown location',certainty:'unknown'}}
+function incType(inc){const ms=members(inc);return ms.some(c=>c.ext.type==='Vehicle fire')?'Vehicle fire':ms.some(c=>c.ext.type!=='Unclear')?'Smoke / possible fire':'Unclear'}
+function newIncident(call,why){const inc={id:'INC-'+(++S.seq),created:now(),reviewedAt:null,updatedAt:now(),research:null,history:[]};S.incs.push(inc);call.incidentId=inc.id;log(`Incident DB: ${inc.id} created from ${call.id} — ${why}`);startResearch(inc);return inc}
+function match(call){
+ const L=call.ext.loc;
+ if(L.certainty==='unknown')return{cls:'D',target:null,reasons:['No building or address given — the agent will not guess one.','Kept visible as its own record until the location is clarified.']};
+ const cands=S.incs.filter(i=>active(i)&&i.id!==call.incidentId&&incLoc(i).building===L.building&&(!L.address||!incLoc(i).address||incLoc(i).address===L.address));
+ const others=S.incs.filter(i=>active(i)&&incLoc(i).building&&incLoc(i).building!==L.building);
+ if(!cands.length)return{cls:'C',target:null,reasons:[`No open incident at ${L.text}.`].concat(others.length?[`${others.map(i=>incLoc(i).text).join(', ')} is nearby, but proximity alone does not make it the same incident.`]:[])};
+ const inc=cands[0],ms=members(inc),keys=new Set(ms.flatMap(c=>c.ext.facts.map(f=>f.key)));
+ const reasons=[`Same explicit location: ${L.text}${L.address?' (address matches)':''}.`];
+ const t=incType(inc);
+ const conflict=(call.ext.type==='Vehicle fire')!==(t==='Vehicle fire')||call.ext.facts.some(f=>f.key==='scope:outside');
+ const et=ms.map(c=>c.ext.eventTime).find(x=>x!=null);
+ reasons.push(call.ext.eventTime!=null&&et!=null?(Math.abs(call.ext.eventTime-et)<=30?'Reported times overlap.':'Reported times differ by over 30 min.'):'Event time not stated by both callers — treated as possibly overlapping.');
+ const shared=call.ext.facts.filter(f=>keys.has(f.key)&&f.key.startsWith('d:')).map(f=>f.text);
+ if(shared.length)reasons.push('Shared details: '+shared.join(', ')+'.');
+ if(conflict){reasons.push(`Distinguishing detail differs: this call describes ${call.ext.type.toLowerCase()}${call.ext.facts.some(f=>f.key==='scope:outside')?' outside the building':''}, the incident describes ${t.toLowerCase()} in the building.`);return{cls:'D',target:inc.id,reasons}}
+ const fresh=call.ext.facts.filter(f=>!keys.has(f.key)&&!f.key.startsWith('loc'));
+ if(fresh.length){reasons.push('Adds new information: '+fresh.map(f=>f.text).join('; ')+'.');return{cls:'B',target:inc.id,reasons,newFacts:fresh.map(f=>f.key)}}
+ reasons.push('Compatible incident type; adds no new details.');return{cls:'A',target:inc.id,reasons}}
+const CLS={A:'Likely same incident — repeated information',B:'Likely same incident — new information',C:'Separate incident',D:'Uncertain match'};
+
+/* ================= Pipeline ================= */
+function process(call,reason){
+ S.agents.intake=`Extracted ${call.id} at ${fmt(now())}`;
+ call.ext=extract(call);
+ // Priority runs before/alongside matching so urgent claims surface immediately
+ prioritize(call);
+ const u=urgentOpen(call);S.agents.priority=u.length?`URGENT flag raised for ${call.id}`:`Assessed ${call.id}`;
+ if(u.length)log(`Priority Agent: URGENT — ${call.id}: ${u.map(f=>f.label).join(', ')} (“${u[0].quote}”) — surfaced immediately, before matching/research`);
+ const m=match(call);call.cls=m.cls;call.reasons=m.reasons;call.newFacts=m.newFacts||[];
+ S.agents.matching=`${call.id}: ${CLS[m.cls]}`;
+ if(m.target){call.proposal={target:m.target,status:'pending',at:now()};if(!call.incidentId)call.incidentId=null;log(`Matching Agent: ${call.id} → proposed link to ${m.target} (${CLS[m.cls]}). Provisional until operator decides.`)}
+ else{call.proposal=null;if(!call.incidentId)newIncident(call,CLS[m.cls]);else{const inc=incById(call.incidentId);inc.updatedAt=now();startResearch(inc)}}
+ if(call.incidentId){const inc=incById(call.incidentId);inc.updatedAt=now()}
+ S.agents.guide=`Questions refreshed for ${call.id}`;
+ if(reason)log(reason)}
+function intake(sc){const c={id:sc.id,text:sc.text,recvAt:now(),updates:[],flags:[],incidentId:null};S.calls.push(c);log(`Gateway: ${c.id} received`);process(c);if(!S.sel)S.sel={t:'call',id:c.id}}
+
+/* ================= Research Agent (async, simulated) ================= */
+function startResearch(inc){const L=incLoc(inc);
+ if(!L.building){inc.research={status:'blocked',items:[],failures:[]};S.agents.research=`${inc.id}: pending — needs a location`;return}
+ inc.research={status:'pending',items:[],failures:[],key:L.building+incType(inc)};S.tasks.push({due:S.sim+6000,inc:inc.id});S.agents.research=`Searching for ${inc.id}…`}
+function finishResearch(id){const inc=incById(id);if(!inc||!inc.research)return;const L=incLoc(inc),t=incType(inc);
+ const ret=now(),items=[],failures=[];
+ const adapters=[...new Set(SOURCES.map(s=>s.adapter))];
+ for(const a of adapters){if(FAILS[L.building]===a){failures.push(`${a}: request timed out — research unavailable from this source`);continue}
+  for(const s of SOURCES.filter(x=>x.adapter===a)){let cls,why;
+   if(s.building!==L.building){cls='unrelated';why='Different place and event — excluded, does not enrich the incident.'}
+   else if(s.kind==='drill'){cls='contradicts';why='Contradicts the callers, but a social post does not dismiss caller reports or urgent flags.'}
+   else if(t==='Vehicle fire'){cls='uncertain';why='Same address, but describes building smoke rather than a vehicle fire.'}
+   else{cls='supports';why=s.underlying!==s.id?`Copy of ${s.underlying} — counted as one underlying source, not independent confirmation.`:'Matches location, type and time.'}
+   items.push({...s,retrieved:ret,cls,why,incident:inc.id})}}
+ inc.research={status:failures.length&&!items.some(i=>i.cls!=='unrelated')?'unavailable':'done',items,failures,at:ret};inc.updatedAt=now();
+ const sup=new Set(items.filter(i=>i.cls==='supports').map(i=>i.underlying)).size;
+ S.agents.research=`${inc.id}: ${items.filter(i=>i.cls!=='unrelated').length} relevant, ${failures.length} failed`;
+ log(`Research Agent: ${inc.id} — ${sup} independent supporting source(s); ${items.filter(i=>i.cls==='unrelated').length} unrelated excluded; ${failures.length} source failure(s). Reassessed: urgent flags unchanged.`)}
+
+/* ================= Operator actions ================= */
+function accept(cid){const c=callById(cid),inc=incById(c.proposal.target);const old=c.incidentId;c.incidentId=inc.id;c.proposal.status='accepted';inc.updatedAt=now();
+ inc.history.push({at:fmt(now()),msg:`Operator accepted ${cid}`});log(`Operator: accepted link ${cid} → ${inc.id}`);
+ if(old&&old!==inc.id){const o=incById(old);if(o&&!active(o))log(`${old} now has no calls — merged into ${inc.id}`)}
+ startResearch(inc);save();render()}
+function reject(cid){const c=callById(cid);c.proposal.status='rejected';log(`Operator: rejected proposed link ${cid} → ${c.proposal.target}`);if(!c.incidentId)newIncident(c,'operator rejected proposed match');save();sel('call',cid)}
+function split(cid){const c=callById(cid),from=c.incidentId;if(members(incById(from)).length<2)return;c.incidentId=null;if(c.proposal)c.proposal.status='split';newIncident(c,`operator split it from ${from}`);incById(from).history.push({at:fmt(now()),msg:`Operator split ${cid} out`});log(`Operator: split ${cid} out of ${from}`);save();render()}
+function ack(cid,k){const f=callById(cid).flags[k];f.ack={at:fmt(now())};const inc=incById(callById(cid).incidentId);if(inc)inc.reviewedAt=now();log(`Operator: acknowledged ${f.label} on ${cid} — severity unchanged, not resolved`);save();render()}
+function review(cid,k){const f=callById(cid).flags[k],dec=document.getElementById(`rd-${cid}-${k}`).value,rs=document.getElementById(`rr-${cid}-${k}`).value.trim();
+ if(rs.length<5){document.getElementById(`re-${cid}-${k}`).textContent='A reason is required for every review decision.';return}
+ f.history.push({at:fmt(now()),dec,reason:rs});if(dec==='Resolved after operator review')f.state='reviewed';const inc=incById(callById(cid).incidentId);if(inc)inc.reviewedAt=now();
+ log(`Operator review on ${cid} ${f.label}: ${dec} — “${rs}”`);save();render()}
+function answer(cid,qi){const el=document.getElementById('ans-'+qi),t=el.value.trim();if(t.length<3){document.getElementById('ansE-'+qi).textContent='Type the caller\'s answer first.';return}
+ const c=callById(cid);c.updates.push({at:fmt(now()),text:t,by:'Simulated caller answer, recorded by operator'});
+ process(c,`Operator recorded a simulated answer on ${c.id}; extraction, matching and priority re-run (original transcript unchanged)`);save();render()}
+function sel(t,id){S.sel={t,id};save();render()}
+function setTab(t){S.tab=t;save();render()}
+function setQ(t){S.qtab=t;save();render()}
+
+/* ================= Loop (single timer) ================= */
+function tick(){if(S.paused)return;S.sim+=250*S.speed;
+ while(S.next<CALL_SCRIPT.length&&CALL_SCRIPT[S.next].at<=S.sim){intake(CALL_SCRIPT[S.next]);S.next++}
+ const due=S.tasks.filter(t=>t.due<=S.sim);S.tasks=S.tasks.filter(t=>t.due>S.sim);due.forEach(t=>finishResearch(t.inc));
+ if(S.next>=CALL_SCRIPT.length&&!S.tasks.length)S.agents.intake='All demo calls received';
+ save();render()}
+if(!window.__bbpLoop)window.__bbpLoop=setInterval(tick,250);
+function restart(){S=Object.assign(fresh(),{speed:S.speed});try{localStorage.removeItem(KEY)}catch(e){}log('Presenter restarted the demo');save();render()}
+function togglePause(){S.paused=!S.paused;save();render()}
+addEventListener('keydown',e=>{if(e.shiftKey&&e.key==='P'&&!/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName))presenter.hidden=!presenter.hidden});
+if(/presenter/.test(location.hash))presenter.hidden=false;
+
+/* ================= Question Guide ================= */
+const QT={'exact location':['What is the exact building address?','Matching and research need an exact place; nearby buildings can be separate incidents.'],
+ 'floor or entrance':['Which floor or entrance are you describing?','Distinguishes events inside the same building.'],
+ 'people affected':['Can you see whether anyone is inside or in danger right now?','Affected people are unknown — unknown is not the same as nobody.'],
+ 'what the caller directly observes':['What can you directly observe right now?','The hazard description is unclear or contradictory.'],
+ 'when it started':['When did you first notice it?','Event time is needed to tell whether reports describe the same event.'],
+ 'same event':['Are you describing the same event as the earlier report?','A similar report exists but a detail differs or the place is unclear.']};
+function questions(calls){const supplied=new Set();calls.forEach(c=>{if(c.ext.loc.certainty==='exact')supplied.add('exact location');if(c.ext.loc.floor!=null)supplied.add('floor or entrance');if(c.ext.danger.length)supplied.add('people affected');if(c.ext.eventTime!=null)supplied.add('when it started');if(c.ext.type!=='Unclear'&&!c.ext.typeUnclear)supplied.add('what the caller directly observes')});
+ const out=[];const order=['exact location','same event','what the caller directly observes','people affected','floor or entrance','when it started'];
+ for(const field of order)for(const c of calls){if(out.length>=3||out.some(q=>q.field===field))continue;
+  const need=field==='same event'?(c.cls==='D'&&S.incs.some(i=>active(i)&&i.id!==c.incidentId)):c.ext.missing.includes(field)&&!supplied.has(field);
+  if(need)out.push({field,call:c.id,q:QT[field][0],why:QT[field][1]})}
+ return out}
+
+/* ================= Rendering ================= */
+function rows(){const out=[];
+ for(const inc of S.incs.filter(active)){const ms=members(inc),pend=S.calls.filter(c=>c.proposal&&c.proposal.status==='pending'&&c.proposal.target===inc.id);
+  const urg=ms.flatMap(c=>urgentOpen(c).map(f=>({c,f}))),unack=urg.filter(x=>!x.f.ack),clar=ms.some(c=>c.flags.some(f=>f.kind==='clarify'));
+  const upd=inc.reviewedAt!=null&&inc.updatedAt>inc.reviewedAt;
+  const newInfo=ms.some(c=>c.cls==='B');const pendUrg=pend.filter(c=>urgentOpen(c).length);
+  out.push({t:'inc',id:inc.id,inc,ms,pend,pendUrg,urg,unack,clar,upd,newInfo,rank:(unack.length||pendUrg.length?0:urg.length?1:clar?2:pend.length?3:4),since:Math.min(...ms.map(c=>c.recvAt))})}
+ for(const c of S.calls.filter(c=>c.proposal&&c.proposal.status==='pending')){const u=urgentOpen(c);out.push({t:'call',id:c.id,c,urg:u.map(f=>({c,f})),unack:u.filter(f=>!f.ack),clar:c.flags.some(f=>f.kind==='clarify'),rank:u.some(f=>!f.ack)?0:u.length?1:3,since:c.recvAt})}
+ return out.sort((a,b)=>a.rank-b.rank||a.since-b.since)}
+function render(){try{renderAll()}catch(err){console.error(err);detail.innerHTML='<div class="box urg"><h4>Display error</h4>'+esc(err.message)+' — press Shift+P → Restart.</div>'}}
+function renderAll(){
+ clock.textContent=fmt(now());pauseBtn.textContent=S.paused?'Resume':'Pause';speed.value=S.speed;
+ const R=rows(),pendN=S.calls.filter(c=>c.proposal&&c.proposal.status==='pending').length,unackN=S.calls.reduce((n,c)=>n+urgentOpen(c).filter(f=>!f.ack).length,0);
+ metrics.innerHTML=[[S.calls.length,'calls received'],[S.incs.filter(active).length,'incident groups'],[pendN,'pending matches'],[unackN,'unacknowledged urgent flags',unackN?'hot':'']].map(([n,l,k])=>`<div class="metric ${k||''}"><b>${n}</b><span>${l}</span></div>`).join('')+(canSave?'':'<div class="metric"><span class="err">Local storage unavailable — state resets on reload.</span></div>');
+ const A=S.agents,pendR=S.incs.filter(i=>i.research&&i.research.status==='pending').length;
+ agents.innerHTML=[['Intake',A.intake,S.next<CALL_SCRIPT.length&&!S.paused],['Matching',A.matching],['Priority',A.priority,0,/URGENT/.test(A.priority)],['Research',pendR?`${pendR} search(es) running · ${A.research}`:A.research,pendR],['Question Guide',A.guide]].map(([n,s,busy,warn])=>`<div class="agent ${busy?'busy':''} ${warn?'warn':''}"><b>${n}</b><span>${esc(s)}</span></div>`).join('')+(S.paused?'<span class="pill p-clar">Replay paused</span>':'');
+ // feed
+ feed.innerHTML=S.calls.length?[...S.calls].reverse().map(c=>{const u=urgentOpen(c).length;return`<button class="call ${S.sel&&S.sel.t==='call'&&S.sel.id===c.id?'sel':''}" onclick="sel('call','${c.id}')"><span class="h"><span>${c.id} · ${fmt(c.recvAt)}</span><span>${u?'<span class="pill p-urg">⚠ Urgent</span>':''}</span></span>
+  <span class="x">${esc(c.text.slice(0,78))}…</span>
+  <span>${c.proposal&&c.proposal.status==='pending'?'<span class="pill p-link">Link proposed</span>':''}${c.incidentId?`<span class="pill p-acc">In ${c.incidentId}</span>`:''}${c.cls==='A'?'<span class="pill p-rep">Repeated info</span>':''}${c.cls==='B'?'<span class="pill p-new">New info</span>':''}${c.flags.some(f=>f.kind==='clarify')?'<span class="pill p-clar">? Clarify</span>':''}${c.updates.length?`<span class="pill p-upd">${c.updates.length} answer(s)</span>`:''}</span></button>`}).join(''):'<p class="empty">Waiting for the first replayed call…</p>';
+ // queue tabs
+ const QF={all:['All',r=>true],urg:['⚠ Urgent',r=>r.urg.length],clar:['? Clarify',r=>r.clar],link:['Links',r=>r.t==='call'||(r.pend&&r.pend.length)],upd:['Updated',r=>r.upd]};
+ qtabs.innerHTML=Object.entries(QF).map(([k,[l,f]])=>`<button class="tab ${S.qtab===k?'on':''}" onclick="setQ('${k}')">${l} (${R.filter(f).length})</button>`).join('');
+ const RR=R.filter(QF[S.qtab][1]);
+ queue.innerHTML=RR.length?RR.map(r=>{const isSel=S.sel&&S.sel.t===r.t&&S.sel.id===r.id;const wait=now()-r.since;
+  if(r.t==='call'){const c=r.c;return`<button class="row link ${r.urg.length?'urg':''} ${isSel?'sel':''}" onclick="sel('call','${c.id}')"><span class="h"><span>Suggested link: ${c.id} → ${c.proposal.target}</span><span>${r.unack.length?'<span class="pill p-urg">⚠ Urgent · unacknowledged</span>':r.urg.length?'<span class="pill p-urg">⚠ Urgent · acknowledged</span>':''}</span></span>
+   <span class="s">${esc(c.ext.loc.text)} · ${CLS[c.cls]}</span><span class="meta"><span>Waiting ${wait} min</span><span>Provisional — needs operator decision</span></span></button>`}
+  const L=incLoc(r.inc),last=r.ms[r.ms.length-1];
+  return`<button class="row ${r.urg.length?'urg':r.clar?'clar':''} ${isSel?'sel':''}" onclick="sel('inc','${r.id}')"><span class="h"><span>${r.id} · ${esc(L.text)}</span><span>${r.unack.length?'<span class="pill p-urg">⚠ Urgent · unacknowledged</span>':r.urg.length?'<span class="pill p-urg">⚠ Urgent · acknowledged</span>':r.clar?'<span class="pill p-clar">? Needs clarification</span>':''}</span></span>
+  <span class="s">${esc(incType(r.inc))}${r.urg.length?' · '+esc(r.urg[0].f.label):''}</span>
+  <span class="meta"><span class="pill p-acc">${r.ms.length} accepted call(s)</span>${r.pend.length?`<span class="pill p-link">${r.pend.length} pending match(es)</span>`:''}${r.pendUrg.length?`<span class="pill p-urg">⚠ Urgent report in pending call ${r.pendUrg.map(c=>c.id).join(', ')}</span>`:''}${r.newInfo?'<span class="pill p-new">New details</span>':''}${r.upd?'<span class="pill p-upd">Updated since review</span>':''}<span>Waiting ${wait} min</span></span></button>`}).join(''):'<p class="empty">Nothing in this queue.</p>';
+ const sig=JSON.stringify([S.sel,S.tab,S.calls.length,S.incs.map(i=>[i.research&&i.research.status,i.reviewedAt,i.updatedAt]),S.calls.map(c=>[c.incidentId,c.proposal&&c.proposal.status,c.flags.map(f=>[f.ack,f.state,f.history.length]),c.updates.length])]);
+ if(sig!==window.__sig){window.__sig=sig;drawDetail()}
+ document.getElementById('log').innerHTML=S.log.map(l=>`<div><time>${l.at}</time>${esc(l.msg)}</div>`).join('')||'<div class="muted">No decisions yet.</div>'}
+function flagBox(c,f,k){return`<div class="box urg"><h4>⚠ URGENT REVIEW — ${esc(f.label)} <span class="cid">${f.src}</span></h4><q>${esc(f.quote)}</q>
+ <div class="muted" style="margin-top:4px">Reported by one caller; not yet corroborated. Certainty is separate from urgency — this stays urgent until an operator review records a reason.${f.note?' '+esc(f.note)+'.':''}</div>
+ <div class="acts">${f.ack?`<span class="pill p-acc">✓ Acknowledged ${f.ack.at} — still open</span>`:`<button class="btn pri" onclick="ack('${c.id}',${k})">Acknowledge (keeps severity)</button>`}${f.state==='reviewed'?'<span class="pill">Reviewed by operator</span>':''}</div>
+ <details class="rv" style="margin-top:6px"><summary class="muted" style="cursor:pointer">Record review decision</summary><select id="rd-${c.id}-${k}"><option>Keep urgent</option><option>Resolved after operator review</option></select><input id="rr-${c.id}-${k}" placeholder="Reason (required)"><div class="err" id="re-${c.id}-${k}"></div><button class="btn" style="margin-top:6px" onclick="review('${c.id}',${k})">Save decision</button>
+ ${f.history.map(h=>`<div class="muted">${h.at} · ${esc(h.dec)} — “${esc(h.reason)}”</div>`).join('')}</details></div>`}
+function drawDetail(){
+ if(!S.sel){detail.innerHTML='<h2 style="margin:0">Details</h2><p class="empty">Select a call or incident.</p>';return}
+ const isCall=S.sel.t==='call',c0=isCall?callById(S.sel.id):null,inc=isCall?(c0&&c0.incidentId?incById(c0.incidentId):null):incById(S.sel.id);
+ if(isCall&&!c0||!isCall&&!inc){detail.innerHTML='<p class="empty">Selection no longer exists.</p>';return}
+ const calls=isCall?[c0]:members(inc);
+ const pend=isCall?(c0.proposal&&c0.proposal.status==='pending'?[c0]:[]):S.calls.filter(c=>c.proposal&&c.proposal.status==='pending'&&c.proposal.target===inc.id);
+ const allForUrg=[...calls,...pend.filter(p=>!calls.includes(p))];
+ const title=isCall?`${c0.id} · ${esc(c0.ext.loc.text)}`:`${inc.id} · ${esc(incLoc(inc).text)}`;
+ let h=`<h2 style="margin:0 0 2px">${title}</h2><div class="muted">${isCall?`Received ${fmt(c0.recvAt)} · ${CLS[c0.cls]}${c0.incidentId?' · member of '+c0.incidentId:''}`:`${esc(incType(inc))} · ${calls.length} accepted call(s) · ${pend.length} pending`}</div>`;
+ // always-visible urgent + new info
+ const urg=allForUrg.flatMap(c=>c.flags.map((f,k)=>({c,f,k})).filter(x=>x.f.kind==='urgent'));
+ h+=urg.map(x=>flagBox(x.c,x.f,x.k)).join('');
+ const nw=allForUrg.filter(c=>c.cls==='B');
+ if(nw.length)h+=`<div class="box new"><h4>New since previous call</h4>${nw.map(c=>c.ext.facts.filter(f=>(c.newFacts||[]).includes(f.key)).map(f=>`<div>${esc(f.text)} <span class="cid">${f.src}</span> <q>${esc(f.quote)}</q></div>`).join('')).join('')}</div>`;
+ const clar=allForUrg.flatMap(c=>c.flags.filter(f=>f.kind==='clarify').map(f=>({c,f})));
+ if(clar.length)h+=`<div class="box clar"><h4>? Needs prompt clarification</h4>${clar.map(x=>`<div>${esc(x.f.label)} <span class="cid">${x.c.id}</span>${x.f.quote?` <q>${esc(x.f.quote)}</q>`:''}</div>`).join('')}</div>`;
+ const T={summary:'Summary',match:`Matching${pend.length?' ('+pend.length+')':''}`,research:'Research',questions:'Questions',transcripts:'Transcripts'};
+ h+=`<div class="tabs" style="margin-top:10px">${Object.entries(T).map(([k,l])=>`<button class="tab ${S.tab===k?'on':''}" onclick="setTab('${k}')">${l}</button>`).join('')}</div><div class="sec">`;
+ if(S.tab==='summary'){
+  const facts=calls.flatMap(c=>c.ext.facts.map(f=>({...f,c:c.id}))),unc=calls.flatMap(c=>c.ext.uncert.map(f=>({...f,c:c.id})));
+  const seen=new Set(),uniq=facts.filter(f=>!seen.has(f.key)&&seen.add(f.key));
+  const contra=[];const neg=calls.flatMap(c=>c.ext.negDanger.map(d=>({...d,c:c.id}))),pos=calls.flatMap(c=>c.ext.danger.map(d=>({...d,c:c.id})));
+  neg.forEach(n=>pos.forEach(p=>contra.push(`${n.c} does not see anyone in danger (“${n.quote}”); ${p.c} reports ${p.label} (“${p.quote}”). Urgent flag retained.`)));
+  if(calls.length>1&&new Set(calls.map(c=>c.ext.type)).size>1)contra.push('Callers describe different hazard types: '+calls.map(c=>`${c.id}: ${c.ext.type}`).join(', ')+'.');
+  const miss=[...new Set(calls.flatMap(c=>c.ext.missing))].filter(m=>!questions(calls).length||true);
+  h+=`<h3>Reported facts</h3><ul class="facts">${uniq.map(f=>`<li>${esc(f.text)}<span class="cid">${f.src}</span>${f.quote?` <q>${esc(f.quote)}</q>`:''}</li>`).join('')||'<li class="muted">None yet</li>'}</ul>
+  <h3>Uncertainties</h3><ul class="facts">${unc.map(f=>`<li>${esc(f.text)}<span class="cid">${f.src}</span> <q>${esc(f.quote)}</q></li>`).join('')||'<li class="muted">None recorded</li>'}</ul>
+  <h3>Contradictions</h3><ul class="facts">${contra.map(x=>`<li>${esc(x)}</li>`).join('')||'<li class="muted">None detected</li>'}</ul>
+  <h3>Missing information</h3><div>${miss.map(m=>`<span class="pill p-clar">${esc(m)}</span>`).join('')||'<span class="muted">None</span>'}</div>`;
+  if(!isCall&&calls.length>1)h+=`<h3>Accepted calls</h3>${calls.map(c=>`<div class="ev"><span class="k">${c.id}</span> · ${fmt(c.recvAt)} · ${CLS[c.cls]} <button class="btn redo" style="float:right" onclick="split('${c.id}')">Split out</button></div>`).join('')}`}
+ if(S.tab==='match'){
+  h+=pend.length?pend.map(c=>`<div class="box info"><h4>${c.id} → ${c.proposal.target}: ${CLS[c.cls]}</h4><ul class="facts">${c.reasons.map(r=>`<li>${esc(r)}</li>`).join('')}</ul>
+   <div class="acts"><button class="btn tealb" onclick="accept('${c.id}')">Accept link</button><button class="btn redo" onclick="reject('${c.id}')">Reject — keep separate</button></div></div>`).join(''):'<p class="muted">No pending match proposals.</p>';
+  const decided=(isCall?calls:S.calls.filter(c=>c.proposal&&c.proposal.target===(inc&&inc.id))).filter(c=>c.proposal&&c.proposal.status!=='pending');
+  if(decided.length)h+=`<h3>Decided</h3>${decided.map(c=>`<div class="ev">${c.id} → ${c.proposal.target}: <b>${c.proposal.status}</b><div class="m">${esc(c.reasons.join(' '))}</div></div>`).join('')}`;
+  if(isCall&&!c0.proposal)h+=`<h3>Matching rationale</h3><ul class="facts">${c0.reasons.map(r=>`<li>${esc(r)}</li>`).join('')}</ul>`;
+  if(!isCall&&calls.length>1)h+=`<h3>Split an incorrect group</h3>${calls.map(c=>`<div class="ev">${c.id} · ${esc(c.ext.type)} <button class="btn redo" style="float:right" onclick="split('${c.id}')">Split out</button></div>`).join('')}`}
+ if(S.tab==='research'){const rinc=inc||(c0&&c0.proposal?incById(c0.proposal.target):null),r=rinc&&rinc.research;
+  if(!r)h+='<p class="muted">Research runs on incident records. This call is not yet linked.</p>';
+  else if(r.status==='pending')h+=`<div class="box info"><b>Pending</b> — searching simulated sources for ${rinc.id}. Urgent flags are already shown and do not wait for research.</div>`;
+  else if(r.status==='blocked')h+='<div class="box clar"><b>Pending — needs a location.</b> The research agent will not guess a building to search.</div>';
+  else{const rel=r.items.filter(i=>i.cls!=='unrelated'),unrel=r.items.filter(i=>i.cls==='unrelated'),sup=new Set(r.items.filter(i=>i.cls==='supports').map(i=>i.underlying)).size;
+   h+=`<div class="muted">Simulated sources · retrieved ${fmt(r.at)} · for ${rinc.id} · ${sup} independent supporting source(s)</div>`;
+   h+=r.failures.map(f=>`<div class="box clar"><b>Research unavailable:</b> ${esc(f)}. Caller reports and flags are unaffected.</div>`).join('');
+   h+=rel.map(i=>`<div class="ev"><span class="k">${i.id}</span> · ${esc(i.type)} · <span class="pill ${i.cls==='supports'?'p-acc':i.cls==='contradicts'?'p-urg':'p-clar'}">${i.cls}</span><div>“${esc(i.claim)}”</div><div class="m">${esc(i.adapter)} · published ${fmt(i.at)} · retrieved ${fmt(i.retrieved)} · underlying ${i.underlying} · ${esc(i.why)}</div></div>`).join('')||'<p class="muted">No matching results found. This is not evidence the incident is false.</p>';
+   if(unrel.length)h+=`<h3>Excluded as unrelated</h3>${unrel.map(i=>`<div class="ev m"><span class="k">${i.id}</span> “${esc(i.claim)}” — ${esc(i.why)}</div>`).join('')}`}}
+ if(S.tab==='questions'){const qs=questions(allForUrg);
+  h+=`<p class="muted" style="margin:0">Suggestions for the human operator. No medical or dispatch instructions.</p>`+(qs.length?qs.map((q,k)=>`<div class="q"><b>${esc(q.q)}</b><div class="m">Why: ${esc(q.why)}<br>Addresses: <b>${esc(q.field)}</b> · from ${q.call}</div><input id="ans-${k}" placeholder="Record the caller's simulated answer…"><div class="err" id="ansE-${k}"></div><button class="btn" style="margin-top:6px" onclick="answer('${q.call}',${k})">Record answer on ${q.call}</button></div>`).join(''):'<p class="muted">No open questions — the key details are already supplied.</p>')}
+ if(S.tab==='transcripts')h+=allForUrg.map(c=>`<div class="ev"><span class="k">${c.id}</span> · received ${fmt(c.recvAt)} · original transcript (never modified)<div class="tx">${esc(c.text)}</div>${c.updates.map((u,k)=>`<div class="upd"><b>${c.id}-U${k+1}</b> · ${esc(u.by)} · ${u.at}<br>${esc(u.text)}</div>`).join('')}</div>`).join('');
+ detail.innerHTML=h+'</div>'}
+{const m=location.hash.match(/sel=([\w-]+)(?:&tab=(\w+))?/);if(m){S.sel={t:/^C\d/.test(m[1])?'call':'inc',id:m[1]};if(m[2])S.tab=m[2]}}
+render();
+</script></body></html>
